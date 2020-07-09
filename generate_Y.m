@@ -1,0 +1,79 @@
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Michele Zemplenyi
+% 6/13/2020
+% File to generate simulated response matrix
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+cd('C:/Users/Michele/Dropbox/Brent Coull/Code for Github/'); % path to save output
+X = csvread('simX_N400_T90.csv');
+N = 400; % number of subjects
+T = 90; % number of days of exposure
+S = 100; % number of CpG sites
+%% First specify form of true beta association surface
+% E.g. vertical band surface (constant signal band extends from probe 1-100 during time
+% window of days 40-44)
+S1 = 1;
+S2 = 100; 
+T1 = 40; 
+T2 = 44; 
+betamax = 0.2; % beta in the signal region
+stnr = 0.1; % signal-to-noise ratio scenario
+
+% set up association surface 
+b1      = zeros(T,T);
+for t = S1:S2;
+    for v = T1:T2;
+        b1(t,v) = betamax;
+    end;
+end;
+
+%% Plot beta association surface 
+figure
+colormap(hot)
+imagesc(b1)
+colorbar
+set(gca, 'Ydir', 'normal')
+set(gca,'FontSize',14)
+xlabel('Time, t','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+ylabel('Site, s','FontSize',14) % note this is really "t" but for my pres. I change to site "s"
+title('True Beta Surface','FontSize',16)
+saveas(gcf, 'true_beta_surface.png')
+%% Generate Covariance structure for E ~ GP(0, Sigma_E)
+CovStr       = eye(S); % need dim of V not number of col in simX ?
+sigmae      = betamax / stnr; 
+rho         = 0.5;
+for i = 1:S
+    for j = (i+1):S
+        CovStr(i,j) = rho^(j-i);
+        CovStr(j,i) = rho^(j-i);
+    end
+end
+Sigma_E     = sigmae^2*CovStr;
+
+%% Signal to noise
+checkSTNR       = max(max(b1))/sigmae;
+disp(checkSTNR)
+fprintf('\n STNR = %d ,\n', checkSTNR);
+
+%% Use Sigma_E to generate matrix of model errors
+E            = zeros(N, S); % previously NS, V
+muE          = zeros(S, 1);  % previously V, 1
+for i = 1:N
+    E(i,:)  = mvnrnd(muE,Sigma_E);
+end
+%% Generate Y
+b0              = zeros(N,1);
+one             = ones(N,1);
+Y               = one'*b0 + X*b1' + E;
+csvwrite(sprintf('simY_N%d_S%d.csv', N, S), Y);
+
+%% View heatmap of Y  
+figure
+colormap(hot)
+imagesc(Y)
+colorbar
+set(gca, 'Ydir', 'normal')
+set(gca,'FontSize',14)
+xlabel('CpG site, s','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+ylabel('Subject','FontSize',14) % note this is really "t" but for my pres. I change to site "s"
+title('Y','FontSize',16)

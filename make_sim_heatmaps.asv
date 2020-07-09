@@ -1,0 +1,61 @@
+function make_sim_heatmaps(results, outPath)
+%% Estimated beta surface
+figure
+colormap(hot)
+imagesc(x,y,results.bhat')
+colorbar
+set(gca, 'Ydir', 'normal')
+set(gca,'FontSize',14)
+xlabel('Time, t','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+ylabel('CpG site, s', 'FontSize',14) 
+title('FFR: Estimated Surface','FontSize',16)
+saveas(gcf, sprintf('%sbetahat.png',outPath))
+%% Bayesian false discovery rate 
+figure
+colormap(hot)
+imagesc(x,y,results.psi')
+colorbar
+set(gca, 'Ydir', 'normal')
+set(gca,'FontSize',14)
+xlabel('Time, t','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+ylabel('CpG site, s', 'FontSize',14) 
+title('FFR: Estimated Surface','FontSize',16)
+saveas(gcf, sprintf('%sBFDR.png',outPath))
+
+    %% MZ: make map of MAPs matrix
+    figure
+    x = [90 0];
+    y = [startProbe endProbe];
+    %colormap(flipud(hot)) % inverting the color bar
+    colormap(flipud(hot))    
+    imagesc(x,y,results.MAPs')
+    colorbar
+    caxis([0 0.5])
+    set(gca, 'Ydir', 'normal')
+    set(gca,'xdir','reverse')
+    set(gca,'FontSize',14)
+    xlabel('Days Before Delivery','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+    ylabel(sprintf('Chr%d: CpG Postion Number',chrNum), 'FontSize',14) 
+    title('FFR: SimBaS','FontSize',16)
+    saveas(gcf, sprintf('%sS%d_SimBaS.jpg',outPath,Scen))
+    %print('-dtiff', sprintf('%sS%d_SimBaS.tif',outPath,Scen), '-r350');
+        %% MZ added: scalar beta surface
+        
+    if results.model.nScalarCov > 0    
+        figure
+        x = [1 size(results.betahatScalar',2)];
+        y = [startProbe endProbe];
+        colormap(hot)
+        imagesc(x,y,results.betahatScalar')
+        colorbar
+        set(gca, 'Ydir', 'normal')
+        set(gca,'FontSize',14)
+        xlabel('Scalar Covariates','FontSize',14) %note this is really "v" but for my presentation I change to time "t"
+        ylabel(sprintf('Chr%d: CpG Postion Number',chrNum), 'FontSize',14) 
+        title('Estimated Scalar Beta Surface','FontSize',16)
+        saveas(gcf, sprintf('%sS%d_scalarB.jpg',outPath,Scen))
+        %print('-dtiff', sprintf('%sS%d_scalarB.tif',outPath,Scen), '-r350');
+    end
+
+fprintf('\n Done saving heatmaps.\n \n');
+end

@@ -1,0 +1,8 @@
+wavfmm4_v5_zhu.m is based on wavfmm4_v3_zhu.m.
+
+In order to deal with large real data with T=8000.
+I modified wavfmm4_v3_zhu by saving the posterior 
+samples during MCMC to text files.And read them in, during the post process steps.By doing so, I keep the memory size in an manageable
+level. 
+
+
